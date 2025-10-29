@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Скуфомер 3000 — насколько ты скуф?</title>
+<meta name="description" content="Шуточный тест-анкета: узнай процент своей скуфности — со смешными вопросами, ветвлениями и живым скуф-метром." />
+<style>
+  :root{
+    --bg: #0b0f15;
+    --card: #101622;
+    --muted: #7f8ba3;
+    --primary: #8ab4ff;
+    --accent: #c792ea;
+    --good: #4ad295;
+    --warn: #ffd166;
+    --bad: #ff6b6b;
+    --text: #e8eefc;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --radius: 18px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif; color:var(--text);
+    background:
+      radial-gradient(60vw 60vw at -10% -10%, #172033 0%, transparent 60%),
+      radial-gradient(60vw 60vw at 110% 110%, #1a1430 0%, transparent 60%),
+      var(--bg);
+    letter-spacing:.2px;
+  }
+  .container{max-width: 980px; margin: 24px auto; padding: 24px;}
+  .header{display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:space-between; margin-bottom: 18px;}
+  .brand{display:flex; align-items:center; gap:14px}
+  .logo{width:56px; height:56px; border-radius:15px;background:conic-gradient(from 210deg, var(--primary), var(--accent), var(--bad), var(--good), var(--primary));filter:saturate(1.2); position:relative; box-shadow: var(--shadow);}
+  .logo::after{content:"🤓"; position:absolute; inset:0; display:grid; place-items:center; font-size:28px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));}
+  .title{font-weight:800; font-size: clamp(22px, 3vw, 30px)}
+  .subtitle{color:var(--muted); font-size:14px}
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.04)) , var(--card);
+    border: 1px solid rgba(255,255,255,.05);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px;
+  }
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap}
+  button, .ghost{
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.08));
+    border: 1px solid rgba(255,255,255,.08);
+    color: var(--text);
+    padding: 10px 14px; border-radius: 12px; cursor:pointer;
+    font-weight:700; transition: transform .06s ease, background .2s ease, border-color .2s ease;
+  }
+  button:hover{transform: translateY(-1px)}
+  button.primary{background: linear-gradient(180deg, rgba(138,180,255,.25), rgba(138,180,255,.08)); border-color: rgba(138,180,255,.35)}
+  button.warn{background: linear-gradient(180deg, rgba(255,209,102,.25), rgba(255,209,102,.08)); border-color: rgba(255,209,102,.35)}
+  button.danger{background: linear-gradient(180deg, rgba(255,107,107,.25), rgba(255,107,107,.08)); border-color: rgba(255,107,107,.35)}
+  button.ghost{background: transparent}
+  .meter{padding:16px; border-radius: 16px; background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.06); display:grid; gap:10px;}
+  .bar{height: 16px; background: rgba(255,255,255,.06); border-radius: 999px; overflow:hidden; position:relative;}
+  .bar>span{display:block; height:100%; width:0%; background: linear-gradient(90deg, var(--good), var(--warn), var(--bad)); border-radius:999px; transition: width .35s cubic-bezier(.2,.8,.2,1);}
+  .percent{font-weight:800; font-size: 34px}
+  .quip{color:var(--muted); font-size:14px}
+  .question{display:grid; gap:14px; margin-top:8px}
+  .qtext{font-size:20px; font-weight:800; line-height:1.2}
+  .options{display:grid; gap:10px}
+  .opt{display:flex; align-items:center; gap:10px; padding:12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; cursor:pointer; transition: background .2s ease, border-color .2s ease, transform .06s ease;}
+  .opt:hover{background: rgba(255,255,255,.06); transform: translateY(-1px)}
+  .opt input{accent-color: var(--primary); transform: scale(1.1)}
+  .opt span{font-weight:600}
+  .nav{display:flex; gap:8px; justify-content:space-between; margin-top:10px}
+  .progressline{height: 3px; background: rgba(255,255,255,.08); border-radius: 4px; overflow:hidden; margin:12px 0 0;}
+  .progressline>span{display:block; height:3px; width:0%; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width .25s ease}
+  .muted{color:var(--muted); font-size:13px}
+  .result{display:grid; gap:10px; text-align:center; padding: 14px 6px 2px;}
+  .badge{display:inline-grid; place-items:center; font-size: 46px; border-radius: 18px; padding: 8px 12px; width:min(100%, 420px); margin: 0 auto; background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.06)); border:1px solid rgba(255,255,255,.08);}
+  .share{display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
+  .footnote{color:var(--muted); text-align:center; font-size:12px; margin-top:10px}
+  .hidden{display:none}
+  .mode{font-size:12px; color:var(--muted)}
+  .toast{
+    position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
+    background:#111826; color:var(--text); border:1px solid rgba(255,255,255,.1);
+    padding:10px 14px; border-radius:12px; box-shadow:var(--shadow);
+    opacity:0; pointer-events:none;
+    transition: opacity .3s ease, transform .3s ease;
+    max-width: 94%; text-align:center; z-index:9999;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(-4px)}
+  @media (max-width:560px){ .percent{font-size:28px} .badge{font-size: 40px} }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="title">Скуфомер 3000</div>
+          <div class="subtitle">Шуточный тест с ветвлениями. Ответь честно — стыдиться всё равно будем 😌</div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="ghost" id="toggleMode" title="Режим: обычный">🧓 Обычный</button>
+        <button class="ghost" id="restartBtn">🔁 Сбросить</button>
+        <button class="primary" id="startBtn">▶️ Начать</button>
+      </div>
+    </div>
+
+    <div class="card meter" id="meterCard" aria-live="polite">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <div class="percent"><span id="percentVal">0</span>% скуф</div>
+        <div class="muted mode" id="modeHint">Режим: Обычный</div>
+      </div>
+      <div class="bar" aria-label="Скуф-метр"><span id="meterBar"></span></div>
+      <div class="quip" id="quip">Пока что ты как свежий огурчик. Но мы уже занесли валидол…</div>
+    </div>
+
+    <div class="card question" id="questionCard">
+      <div class="qtext" id="qText">Нажми «Начать», чтобы выяснить правду, которую страшно знать.</div>
+      <div class="options" id="options"></div>
+      <div class="nav">
+        <span class="muted" id="stepInfo">Вопросов пока нет. Это как понедельник без кофе.</span>
+        <div style="display:flex; gap:8px">
+          <button id="prevBtn" class="ghost" disabled>⬅️ Назад</button>
+          <button id="nextBtn" class="primary" disabled>Дальше ➡️</button>
+        </div>
+      </div>
+      <div class="progressline"><span id="progress"></span></div>
+    </div>
+
+    <div class="card result hidden" id="resultCard">
+      <div class="badge" id="badgeEmoji" aria-hidden="true">🧓</div>
+      <div class="percent"><span id="finalPercent">0</span>% СКУФ</div>
+      <div class="quip" id="finalLabel">Диагноз: «Жизнерадостный не-скuf». Врачи аплодируют стоя.</div>
+      <div class="quip" id="finalSubtype">Подтип: —</div>
+      <div class="quip" id="finalQuote">Фраза дня: «…»</div>
+      <div class="share">
+        <button id="copyBtn" class="primary">📋 Скопировать результат</button>
+        <button id="shareBtn" class="warn">📣 Поделиться</button>
+        <button id="againBtn" class="ghost">🔁 Пройти ещё раз</button>
+      </div>
+      <div class="footnote">Это развлекательный тест. Если узнал в себе скуфа — это не повод грустить, это повод заварить чай ☕️</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Скопировано!</div>
+
+<script>
+/**
+ * Скуфомер 3000 — фикс NaN + длительные тосты + рандомные события скуфа.
+ * Пересчёт баллов делается «с нуля» при каждом ответе (recomputeTotals).
+ */
+
+const el = id => document.getElementById(id);
+
+// ---------- Шутки и тексты ----------
+const quips = [
+  [0, 10, "Пока что ты как свежий огурчик. Но мы уже занесли валидол…"],
+  [10, 25, "Небольшой налёт скуфа. Возможно, у тебя дома есть халат, но ты это отрицаешь."],
+  [25, 45, "Стабильный уровень ворчунства. Ты экономишь не деньги — ты экономишь душевные силы."],
+  [45, 65, "Ого! Уже пахнет тапочками и кружкой «лучшему сотруднику 2012»."],
+  [65, 85, "Скуфотерапия необходима: прогулка, мемы и немного «шо вы тут все устроили?»."],
+  [85, 101, "Критический уровень! При упоминании «молодёжь» ты автоматически вздыхаешь."]
+];
+function getQuip(p){ return quips.find(([a,b])=> p>=a && p<b)?.[2] ?? "Держишься молодцом, скуф-игрок!"; }
+function randomItem(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+const subtypes = [
+  {name:"Домашний скуф", emoji:"🧦", test:(p,a)=> p>=55 && a.halatrobe},
+  {name:"Рабочий скуф", emoji:"📎", test:(p,a)=> p>=50 && a.monday},
+  {name:"Техно-скуф", emoji:"💾", test:(p,a)=> p>=45 && a.winUpdateFear},
+  {name:"Элитный скуф", emoji:"🧐", test:(p,a)=> p>=70 && a.disdain},
+  {name:"Полевой скуф", emoji:"🪵", test:(p,a)=> p>=40 && a.kettleMac}
+];
+
+const quotes = [
+  "Сегодня идеальный день ничего не делать и немного пожаловаться.",
+  "Раньше и чай был горячее… хотя, возможно, это чайник сломался.",
+  "Я не стар — я классик в жанре «эх».",
+  "Нажал «отложить» — сэкономил нервы. Наука подтверждает (мной).",
+  "Главное — покой. Всё остальное громко."
+];
+
+// ---------- Рандомные события скуфа ----------
+/** Маленькие случайные баффы/дебаффы. Изменяют bonusPoints (±1..3 очка). */
+const SKUF_EVENTS = [
+  {msg:"Вспомнил про скидку на носки — чувство благородной экономии окутало тебя.", delta:+2},
+  {msg:"Залип на обсуждение цен в подъезде. Ты кивал особенно опытно.", delta:+3},
+  {msg:"Резко захотелось домой к сериалу. Устал морально, хотя ничего не делал.", delta:+1},
+  {msg:"Сделал глубокий вдох весны и… разнылся. Самокритично.", delta:+1},
+  {msg:"Решил обновить Windows и передумал — мудрость победила.", delta:+2},
+  {msg:"Друг позвал на вечеринку — ты согласился. Случайно минус скуф.", delta:-2},
+  {msg:"Прошёл мимо распродажи и ничего не купил — характер закалён.", delta:-1},
+  {msg:"Скинул мем друзьям раньше, чем вздохнул — прогресс!", delta:-3}
+];
+
+function maybeTriggerRandomEvent(){
+  // ~25% шанс после каждого ответа
+  if (Math.random() < 0.25){
+    const ev = randomItem(SKUF_EVENTS);
+    state.bonusPoints += ev.delta;
+    // показываем тост на 12 секунд, чтобы прочитать
+    toast(
+      (ev.delta>0?"🧓 ":"🌀 ") + ev.msg + ` ${ev.delta>0?`(+${ev.delta} очк.)`:`(${ev.delta} очк.)`}`,
+      12000
+    );
+    recomputeTotals();
+  }
+}
+
+// ---------- База вопросов (ветвления) ----------
+const QUESTIONS = [
+  {
+    id:"intro",
+    type:"choice",
+    text:"Готов узнать правду? Предупреждаю: скуф внутри каждого из нас. У некоторых — с кружкой.",
+    options:[
+      {label:"Поехали! 🧓", points:4},
+      {label:"Я вообще-то зумер! 😎", points:1, next:"youthCheck"}
+    ]
+  },
+  {
+    id:"kettleMac",
+    type:"choice",
+    text:"Заливаешь ли макароны кетчупом?",
+    flag:"kettleMac",
+    options:[
+      {label:"Всегда. Я эстет.", points:8},
+      {label:"Редко. Но иногда…", points:4},
+      {label:"Никогда! Я уважаю пасту.", points:0}
+    ]
+  },
+  {
+    id:"halatrobe",
+    type:"choice",
+    text:"Есть ли у тебя домашний халат/тапочки?",
+    flag:"halatrobe",
+    options:[
+      {label:"Пакетик чая, сериал и я — комплект.", points:8},
+      {label:"Иногда ношу, если холодно.", points:4},
+      {label:"Какие тапочки? Только кроссы!", points:0}
+    ]
+  },
+  {
+    id:"windows",
+    type:"choice",
+    text:"Боишься обновлять Windows? (вдруг всё сломается и пропадёт «Сапёр»)",
+    flag:"winUpdateFear",
+    options:[
+      {label:"Жду годик. Пусть другие протестят.", points:8},
+      {label:"Ставлю через пару недель.", points:4},
+      {label:"Сразу обновляю. Живу опасно.", points:0}
+    ]
+  },
+  {
+    id:"rizz",
+    type:"choice",
+    text:"Ты понимаешь, что такое «rizz»?",
+    options:[
+      {label:"Конечно, это харизма!", points:0, next:"flex"},
+      {label:"Притворюсь, что понимаю.", points:5},
+      {label:"Rizz — это что, утюг?", points:9}
+    ]
+  },
+  {
+    id:"flex",
+    type:"slider",
+    text:"Насколько по шкале 0–100 тебе лень выходить из дома после 20:00?",
+    sliderMaxPoints:10
+  },
+  {
+    id:"music",
+    type:"choice",
+    text:"Современных рэперов слушаешь?",
+    options:[
+      {label:"Да. Я в теме.", points:0},
+      {label:"Только старичков.", points:5},
+      {label:"Рэп — это не музыка, эх!", points:9}
+    ]
+  },
+  {
+    id:"monday",
+    type:"choice",
+    text:"Чувствуешь ли духовную связь с фразой «жить бы до пятницы»?",
+    flag:"monday",
+    options:[
+      {label:"Это мой девиз.", points:8},
+      {label:"Иногда да.", points:4},
+      {label:"Я люблю понедельники (да, я странный).", points:0}
+    ]
+  },
+  {
+    id:"youthCheck",
+    type:"choice",
+    text:"Хорошо, зумер. Что означает «GYAT»?",
+    options:[
+      {label:"Государственный Ядреный… ладно, не знаю.", points:7},
+      {label:"Про несовместимые с этикетом… формы.", points:0},
+      {label:"Это новая видеокарта?", points:9}
+    ]
+  },
+  {
+    id:"disdain",
+    type:"choice",
+    text:"Как часто ты произносишь «вот раньше было лучше»?",
+    flag:"disdain",
+    options:[
+      {label:"Это моё комбо с «трава зеленее».", points:9},
+      {label:"Иногда, когда цены вижу.", points:5},
+      {label:"Я за прогресс. И за скидки.", points:1}
+    ]
+  },
+  {
+    id:"teaMug",
+    type:"choice",
+    text:"У тебя есть любимая потёртая кружка непонятного происхождения?",
+    options:[
+      {label:"Да, и она пережила три переезда.", points:9},
+      {label:"Есть, но я её не люб(л)ю.", points:4},
+      {label:"Кружки обновляю чаще чем планы на жизнь.", points:0}
+    ]
+  },
+  {
+    id:"wifi",
+    type:"slider",
+    text:"Насколько сильно раздражает медленный Wi-Fi? (0 — «всё равно», 100 — «кто выключил интернет 220V?»)",
+    sliderMaxPoints:8
+  },
+  {
+    id:"gym",
+    type:"choice",
+    text:"Спорт:",
+    options:[
+      {label:"Диванный триатлон: диван-холодильник-диван.", points:9},
+      {label:"Хожу иногда, но страдаю публично.", points:4},
+      {label:"Зал — мой дом.", points:0}
+    ]
+  },
+  {
+    id:"finalPing",
+    type:"choice",
+    text:"Финальный вопрос: если друзья зовут гулять, а ты уже в тапочках…",
+    options:[
+      {label:"Отказываюсь с достойной грустью.", points:8},
+      {label:"Иду, но ворчу для баланса.", points:5},
+      {label:"Выбегаю. Тапочки — со мной.", points:2}
+    ]
+  }
+];
+
+const ORDER = ["intro","kettleMac","halatrobe","windows","rizz","flex","music","monday","youthCheck","disdain","teaMug","wifi","gym","finalPing"];
+
+const state = {
+  started:false,
+  anti:false,
+  idx:0,
+  pathIds:[],
+  answers:{},      // id -> {type, value}
+  flags:{},        // вспомогательные флаги
+  totalPoints:0,
+  totalMax:0,
+  bonusPoints:0    // рандомные события скуфа (±)
+};
+
+function reset(){
+  state.started=false; state.anti=false; state.idx=0;
+  state.pathIds=[...ORDER];
+  state.answers={}; state.flags={};
+  state.totalPoints=0; state.totalMax=0; state.bonusPoints=0;
+  el("options").innerHTML="";
+  el("qText").textContent = "Нажми «Начать», чтобы выяснить правду, которую страшно знать.";
+  el("stepInfo").textContent = "Вопросов пока нет. Это как понедельник без кофе.";
+  el("progress").style.width = "0%";
+  setPercent(0);
+  el("resultCard").classList.add("hidden");
+  el("questionCard").classList.remove("hidden");
+  el("nextBtn").disabled = true; el("prevBtn").disabled = true;
+  shakeQuip("Пока что ты как свежий огурчик. Но мы уже занесли валидол…");
+}
+
+function shakeQuip(text){ el("quip").textContent = text; }
+function findQ(id){ return QUESTIONS.find(q=>q.id===id); }
+
+function start(){
+  state.started = true;
+  state.idx = 0;
+  renderCurrent();
+}
+
+function setPercent(p){
+  const n = Number.isFinite(p) ? Math.max(0, Math.min(100, Math.round(p))) : 0;
+  el("percentVal").textContent = n;
+  el("meterBar").style.width = n + "%";
+  shakeQuip(getQuip(n));
+}
+
+function recomputeTotals(){
+  let totalPoints = 0;
+  let totalMax = 0;
+
+  for (const id of state.pathIds){
+    const ans = state.answers[id];
+    if (!ans) continue;
+    const q = findQ(id);
+    if (!q) continue;
+
+    if (q.type === "choice"){
+      const max = Math.max(0, ...q.options.map(o=>Number.isFinite(o.points)?o.points:0));
+      const chosen = q.options[ans.value];
+      const base = Number.isFinite(chosen?.points) ? chosen.points : 0;
+      const adjusted = adjustForMode(base);
+      totalMax += max;
+      totalPoints += adjusted;
+    } else if (q.type === "slider"){
+      const max = Number.isFinite(q.sliderMaxPoints) ? q.sliderMaxPoints : 10;
+      const val = Math.max(0, Math.min(100, Number(ans.value) || 0));
+      const base = Math.round((val/100) * max);
+      const adjusted = adjustForMode(base);
+      totalMax += max;
+      totalPoints += adjusted;
+    }
+  }
+
+  state.totalMax = totalMax;
+  state.totalPoints = totalPoints;
+
+  const percent = (state.totalMax>0)
+    ? ((state.totalPoints + state.bonusPoints) / state.totalMax) * 100
+    : 0;
+  setPercent(percent);
+}
+
+function renderCurrent(){
+  const id = state.pathIds[state.idx];
+  const q = findQ(id);
+  if (!q) return;
+  el("qText").textContent = q.text;
+  el("options").innerHTML = "";
+
+  if (q.type === "choice"){
+    q.options.forEach((opt, i)=>{
+      const wrap = document.createElement("label");
+      wrap.className = "opt";
+      const input = document.createElement("input");
+      input.type = "radio"; input.name = "opt"; input.value = i;
+      if (state.answers[id]?.value === i) input.checked = true;
+      const span = document.createElement("span"); span.textContent = opt.label;
+      wrap.appendChild(input); wrap.appendChild(span);
+      wrap.addEventListener("click", ()=> selectChoice(id, i));
+      el("options").appendChild(wrap);
+    });
+  } else if (q.type === "slider"){
+    const wrap = document.createElement("div");
+    wrap.className = "opt"; wrap.style.display="grid"; wrap.style.gap="8px";
+    const val = state.answers[id]?.value ?? 0;
+    wrap.innerHTML = `
+      <div class="muted">Перетащи ползунок. Подсчёт скуфа идёт в реальном времени.</div>
+      <input id="slider" type="range" min="0" max="100" step="1" value="${val}">
+      <div><b>Значение:</b> <span id="sliderVal">${val}</span> / 100</div>
+    `;
+    el("options").appendChild(wrap);
+    const slider = el("slider");
+    const sliderVal = el("sliderVal");
+    slider.addEventListener("input", ()=>{
+      sliderVal.textContent = slider.value;
+      selectSlider(id, Number(slider.value), {preview:true});
+    });
+    slider.addEventListener("change", ()=>{
+      selectSlider(id, Number(slider.value), {preview:false});
+    });
+  }
+
+  // Навигация и прогресс
+  el("prevBtn").disabled = state.idx===0;
+  el("nextBtn").disabled = !state.answers[id];
+  el("stepInfo").textContent = `Вопрос ${state.idx+1} из ${state.pathIds.length}`;
+  el("progress").style.width = ((state.idx)/(Math.max(1,state.pathIds.length-1)))*100 + "%";
+}
+
+function selectChoice(id, optIndex){
+  const q = findQ(id);
+  const opt = q.options[optIndex];
+
+  // Сохраняем ответ
+  state.answers[id] = {type:"choice", value: optIndex};
+
+  // Флаги для подтипов
+  if (q.flag){ state.flags[q.flag] = true; }
+
+  // Ветвление
+  if (opt.next){
+    const nextId = opt.next;
+    const nextTail = [nextId, ...ORDER.slice(ORDER.indexOf(nextId)+1)];
+    state.pathIds = [...state.pathIds.slice(0, state.idx+1), ...nextTail];
+  } else {
+    const currentIndexInOrder = ORDER.indexOf(id);
+    const tail = ORDER.slice(currentIndexInOrder+1);
+    const merged = [ ...state.pathIds.slice(0, state.idx+1) ];
+    tail.forEach(qid => { if (!merged.includes(qid)) merged.push(qid); });
+    state.pathIds = merged;
+  }
+
+  el("nextBtn").disabled = false;
+
+  // Пересчёт процентов
+  recomputeTotals();
+
+  // Случайное событие скуфа (показываем тост на 12 сек)
+  maybeTriggerRandomEvent();
+}
+
+function selectSlider(id, val, {preview}){
+  state.answers[id] = {type:"slider", value: Math.max(0, Math.min(100, Number(val)||0))};
+  recomputeTotals();
+  if (!preview) el("nextBtn").disabled = false;
+}
+
+function adjustForMode(points){
+  if (!state.anti) return points;
+  const baseMax = 10;
+  const p = Number.isFinite(points) ? points : 0;
+  const inv = baseMax - Math.max(0, Math.min(baseMax, p));
+  return inv;
+}
+
+function goNext(){
+  if (!state.started){ start(); return; }
+  if (state.idx >= state.pathIds.length-1){ finish(); return; }
+  state.idx++; renderCurrent();
+}
+function goPrev(){ if (state.idx===0) return; state.idx--; renderCurrent(); }
+
+function finish(){
+  const percent = Number(el("percentVal").textContent) || 0;
+  el("finalPercent").textContent = percent;
+
+  const emoji = percent<20 ? "🧒" : percent<40 ? "🧑" : percent<60 ? "🧔" : percent<80 ? "🧓" : "🦖";
+  el("badgeEmoji").textContent = emoji;
+
+  const facts = {
+    halatrobe: !!state.flags.halatrobe,
+    monday: !!state.flags.monday,
+    winUpdateFear: !!state.flags.winUpdateFear,
+    disdain: !!state.flags.disdain,
+    kettleMac: !!state.flags.kettleMac
+  };
+  const st = subtypes.find(s=> s.test(percent, facts));
+  const subtypeText = st ? `${st.emoji} ${st.name}` : "🌀 Мульти-скuf: понемногу отовсюду";
+  el("finalSubtype").textContent = `Подтип: ${subtypeText}`;
+
+  const label =
+    percent<15 ? "Диагноз: «Жизнерадостный анти-скуф». Ты опасно позитивен."
+  : percent<35 ? "Небольшая скуфность. Иногда ворчишь для профилактики."
+  : percent<55 ? "Сбалансированный скуф. Умеешь и вздохнуть, и повеселиться."
+  : percent<75 ? "Уверенный скуф. Тапочки — часть образа, а не обувь."
+  : "Торжественно: «Эталонный скуф». Гордись и жалуйся одновременно.";
+  el("finalLabel").textContent = label;
+
+  el("finalQuote").textContent = `Фраза дня: «${randomItem(quotes)}»`;
+
+  el("questionCard").classList.add("hidden");
+  el("resultCard").classList.remove("hidden");
+}
+
+function toast(msg="Готово!", duration=12000){
+  const t = el("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._hideTimer);
+  t._hideTimer = setTimeout(()=> t.classList.remove("show"), duration);
+}
+
+// ---------- События UI ----------
+el("startBtn").addEventListener("click", ()=>{
+  if (!state.started) start(); else goNext();
+});
+el("nextBtn").addEventListener("click", goNext);
+el("prevBtn").addEventListener("click", goPrev);
+
+el("restartBtn").addEventListener("click", reset);
+
+el("againBtn").addEventListener("click", ()=>{
+  reset(); start();
+});
+
+el("toggleMode").addEventListener("click", ()=>{
+  state.anti = !state.anti;
+  el("toggleMode").textContent = state.anti ? "🧪 Anti-Skuf" : "🧓 Обычный";
+  el("modeHint").textContent = `Режим: ${state.anti ? "Anti-Skuf (пробуй быть «менее скуфом»)" : "Обычный"}`;
+  recomputeTotals(); // пересчитать все ответы под новый режим
+});
+
+el("copyBtn").addEventListener("click", ()=>{
+  const p = el("finalPercent").textContent;
+  const subtype = el("finalSubtype").textContent.replace("Подтип: ","");
+  const label = el("finalLabel").textContent;
+  const quote = el("finalQuote").textContent.replace("Фраза дня: ","");
+  const mode = state.anti ? "Anti-Skuf" : "Обычный";
+  const text = `Мой результат в «Скуфомер 3000»: ${p}% скуф (${subtype}). ${label} ${quote} — Режим: ${mode}`;
+  navigator.clipboard.writeText(text).then(()=> toast("Результат скопирован!", 2500));
+});
+
+el("shareBtn").addEventListener("click", async ()=>{
+  const p = el("finalPercent").textContent;
+  const subtype = el("finalSubtype").textContent.replace("Подтип: ","");
+  const label = el("finalLabel").textContent;
+  const quote = el("finalQuote").textContent.replace("Фраза дня: ","");
+  const mode = state.anti ? "Anti-Skuf" : "Обычный";
+  const text = `Мой результат в «Скуфомер 3000»: ${p}% скуф (${subtype}). ${label} ${quote} — Режим: ${mode}`;
+  if (navigator.share){
+    try{ await navigator.share({title:"Скуфомер 3000", text}); }
+    catch{ toast("Не вышло поделиться… но мы всё равно гордимся тобой.", 3000); }
+  } else {
+    navigator.clipboard.writeText(text);
+    toast("Поделиться недоступно, зато скопировали текст!", 3000);
+  }
+});
+
+// Клавиатура
+document.addEventListener("keydown", (e)=>{
+  if (e.key === "ArrowRight") { if (!el("nextBtn").disabled) goNext(); }
+  if (e.key === "ArrowLeft")  { if (!el("prevBtn").disabled) goPrev(); }
+});
+
+// Инициализация
+reset();
+</script>
+</body>
+</html>
