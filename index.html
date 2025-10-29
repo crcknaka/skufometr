@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>Скуфомер 3000 — насколько ты скуф?</title>
 <meta name="description" content="Шуточный тест-анкета: узнай процент своей скуфности — со смешными вопросами, ветвлениями и живым скуф-метром." />
 <style>
@@ -77,7 +77,31 @@
   .share{display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
   .footnote{color:var(--muted); text-align:center; font-size:12px; margin-top:10px}
   .hidden{display:none}
-  .mode{font-size:12px; color:var(--muted)}
+  #startBtn{position:relative; z-index:0; overflow:visible; isolation:isolate}
+  #startBtn.callout{
+    animation: buttonPulse 2.6s ease-in-out infinite;
+    box-shadow: 0 0 0 rgba(138,180,255,.4);
+  }
+  #startBtn.callout::after{
+    content:"";
+    position:absolute;
+    inset:-6px;
+    border-radius: inherit;
+    background: radial-gradient(circle, rgba(138,180,255,.45) 0%, rgba(199,146,234,.2) 55%, rgba(255,255,255,0) 75%);
+    z-index:-1;
+    opacity:.6;
+    transform:scale(.9);
+    animation: halo 2.6s ease-in-out infinite;
+  }
+  @keyframes buttonPulse{
+    0%,100%{transform:scale(1); box-shadow:0 0 0 rgba(138,180,255,0.1);}
+    45%{transform:scale(1.05); box-shadow:0 0 22px rgba(138,180,255,0.45);}
+  }
+  @keyframes halo{
+    0%{opacity:.55; transform:scale(.9);}
+    60%{opacity:.85; transform:scale(1.08);}
+    100%{opacity:0; transform:scale(1.25);}
+  }
   .toast{
     position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
     background:#111826; color:var(--text); border:1px solid rgba(255,255,255,.1);
@@ -111,16 +135,14 @@
         </div>
       </div>
       <div class="toolbar">
-        <button class="ghost" id="toggleMode" title="Режим: обычный">🧓 Обычный</button>
-        <button class="ghost" id="restartBtn">🔁 Сбросить</button>
-        <button class="primary" id="startBtn">▶️ Начать</button>
+        <button class="primary callout" id="startBtn">▶️ Начать</button>
+        <button class="ghost hidden" id="restartBtn">🔁 Сбросить</button>
       </div>
     </div>
 
     <div class="card meter" id="meterCard" aria-live="polite">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
         <div class="percent"><span id="percentVal">0</span>% скуф</div>
-        <div class="muted mode" id="modeHint">Режим: Обычный</div>
       </div>
       <div class="bar" aria-label="Скуф-метр"><span id="meterBar"></span></div>
       <div class="quip" id="quip">Пока что ты как свежий огурчик. Но мы уже занесли валидол…</div>
@@ -129,7 +151,7 @@
     <div class="card question" id="questionCard">
       <div class="qtext" id="qText">Нажми «Начать», чтобы выяснить правду, которую страшно знать.</div>
       <div class="options" id="options"></div>
-      <div class="nav">
+      <div class="nav hidden" id="navControls">
         <span class="muted" id="stepInfo">Вопросов пока нет. Это как понедельник без кофе.</span>
         <div style="display:flex; gap:8px">
           <button id="prevBtn" class="ghost" disabled>⬅️ Назад</button>
@@ -362,9 +384,12 @@ const QUESTIONS = [
 
 const ORDER = ["intro","kettleMac","halatrobe","windows","rizz","flex","music","monday","youthCheck","disdain","teaMug","wifi","gym","finalPing"];
 
+const startBtn = el("startBtn");
+const restartBtn = el("restartBtn");
+const navControls = el("navControls");
+
 const state = {
   started:false,
-  anti:false,
   idx:0,
   pathIds:[],
   answers:{},      // id -> {type, value}
@@ -375,7 +400,7 @@ const state = {
 };
 
 function reset(){
-  state.started=false; state.anti=false; state.idx=0;
+  state.started=false; state.idx=0;
   state.pathIds=[...ORDER];
   state.answers={}; state.flags={};
   state.totalPoints=0; state.totalMax=0; state.bonusPoints=0;
@@ -388,6 +413,10 @@ function reset(){
   el("questionCard").classList.remove("hidden");
   el("nextBtn").disabled = true; el("prevBtn").disabled = true;
   shakeQuip("Пока что ты как свежий огурчик. Но мы уже занесли валидол…");
+  startBtn.classList.remove("hidden");
+  startBtn.classList.add("callout");
+  restartBtn.classList.add("hidden");
+  navControls.classList.add("hidden");
 }
 
 function shakeQuip(text){ el("quip").textContent = text; }
@@ -395,6 +424,10 @@ function findQ(id){ return QUESTIONS.find(q=>q.id===id); }
 
 function start(){
   state.started = true;
+  startBtn.classList.remove("callout");
+  startBtn.classList.add("hidden");
+  restartBtn.classList.remove("hidden");
+  navControls.classList.remove("hidden");
   state.idx = 0;
   renderCurrent();
 }
@@ -420,16 +453,14 @@ function recomputeTotals(){
       const max = Math.max(0, ...q.options.map(o=>Number.isFinite(o.points)?o.points:0));
       const chosen = q.options[ans.value];
       const base = Number.isFinite(chosen?.points) ? chosen.points : 0;
-      const adjusted = adjustForMode(base);
       totalMax += max;
-      totalPoints += adjusted;
+      totalPoints += base;
     } else if (q.type === "slider"){
       const max = Number.isFinite(q.sliderMaxPoints) ? q.sliderMaxPoints : 10;
       const val = Math.max(0, Math.min(100, Number(ans.value) || 0));
       const base = Math.round((val/100) * max);
-      const adjusted = adjustForMode(base);
       totalMax += max;
-      totalPoints += adjusted;
+      totalPoints += base;
     }
   }
 
@@ -527,14 +558,6 @@ function selectSlider(id, val, {preview}){
   if (!preview) el("nextBtn").disabled = false;
 }
 
-function adjustForMode(points){
-  if (!state.anti) return points;
-  const baseMax = 10;
-  const p = Number.isFinite(points) ? points : 0;
-  const inv = baseMax - Math.max(0, Math.min(baseMax, p));
-  return inv;
-}
-
 function goNext(){
   if (!state.started){ start(); return; }
   if (state.idx >= state.pathIds.length-1){ finish(); return; }
@@ -561,7 +584,7 @@ function finish(){
   el("finalSubtype").textContent = `Подтип: ${subtypeText}`;
 
   const label =
-    percent<15 ? "Диагноз: «Жизнерадостный анти-скуф». Ты опасно позитивен."
+    percent<15 ? "Диагноз: «Жизнерадостный не-скуф». Ты опасно позитивен."
   : percent<35 ? "Небольшая скуфность. Иногда ворчишь для профилактики."
   : percent<55 ? "Сбалансированный скуф. Умеешь и вздохнуть, и повеселиться."
   : percent<75 ? "Уверенный скуф. Тапочки — часть образа, а не обувь."
@@ -572,6 +595,7 @@ function finish(){
 
   el("questionCard").classList.add("hidden");
   el("resultCard").classList.remove("hidden");
+  navControls.classList.add("hidden");
 }
 
 function toast(msg="Готово!", duration=12000){
@@ -583,23 +607,16 @@ function toast(msg="Готово!", duration=12000){
 }
 
 // ---------- События UI ----------
-el("startBtn").addEventListener("click", ()=>{
-  if (!state.started) start(); else goNext();
+startBtn.addEventListener("click", ()=>{
+  if (!state.started) start();
 });
 el("nextBtn").addEventListener("click", goNext);
 el("prevBtn").addEventListener("click", goPrev);
 
-el("restartBtn").addEventListener("click", reset);
+restartBtn.addEventListener("click", reset);
 
 el("againBtn").addEventListener("click", ()=>{
   reset(); start();
-});
-
-el("toggleMode").addEventListener("click", ()=>{
-  state.anti = !state.anti;
-  el("toggleMode").textContent = state.anti ? "🧪 Anti-Skuf" : "🧓 Обычный";
-  el("modeHint").textContent = `Режим: ${state.anti ? "Anti-Skuf (пробуй быть «менее скуфом»)" : "Обычный"}`;
-  recomputeTotals(); // пересчитать все ответы под новый режим
 });
 
 el("copyBtn").addEventListener("click", ()=>{
@@ -607,8 +624,7 @@ el("copyBtn").addEventListener("click", ()=>{
   const subtype = el("finalSubtype").textContent.replace("Подтип: ","");
   const label = el("finalLabel").textContent;
   const quote = el("finalQuote").textContent.replace("Фраза дня: ","");
-  const mode = state.anti ? "Anti-Skuf" : "Обычный";
-  const text = `Мой результат в «Скуфомер 3000»: ${p}% скуф (${subtype}). ${label} ${quote} — Режим: ${mode}`;
+  const text = `Мой результат в «Скуфомер 3000»: ${p}% скуф (${subtype}). ${label} ${quote}`;
   navigator.clipboard.writeText(text).then(()=> toast("Результат скопирован!", 2500));
 });
 
@@ -617,8 +633,7 @@ el("shareBtn").addEventListener("click", async ()=>{
   const subtype = el("finalSubtype").textContent.replace("Подтип: ","");
   const label = el("finalLabel").textContent;
   const quote = el("finalQuote").textContent.replace("Фраза дня: ","");
-  const mode = state.anti ? "Anti-Skuf" : "Обычный";
-  const text = `Мой результат в «Скуфомер 3000»: ${p}% скуф (${subtype}). ${label} ${quote} — Режим: ${mode}`;
+  const text = `Мой результат в «Скуфомер 3000»: ${p}% скуф (${subtype}). ${label} ${quote}`;
   if (navigator.share){
     try{ await navigator.share({title:"Скуфомер 3000", text}); }
     catch{ toast("Не вышло поделиться… но мы всё равно гордимся тобой.", 3000); }
