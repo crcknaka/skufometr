@@ -88,6 +88,16 @@
   }
   .toast.show{opacity:1; transform:translateX(-50%) translateY(-4px)}
   @media (max-width:560px){ .percent{font-size:28px} .badge{font-size: 40px} }
+  @media print{
+    body{background:#fff; color:#111;}
+    .container{max-width:800px; margin:0 auto; padding:40px;}
+    .header, #meterCard, #questionCard, .toolbar, #toast{display:none !important;}
+    .card{background:#fff; border:none; box-shadow:none; color:#111;}
+    .result{display:grid !important; gap:16px; text-align:center; padding:48px; border:3px solid #8ab4ff; border-radius:30px;}
+    .result .badge{background:none; border:none; color:inherit;}
+    .result .share, .result button{display:none !important;}
+    .footnote{margin-top:24px; color:#555;}
+  }
 </style>
 </head>
 <body>
@@ -138,6 +148,7 @@
       <div class="share">
         <button id="copyBtn" class="primary">📋 Скопировать результат</button>
         <button id="shareBtn" class="warn">📣 Поделиться</button>
+        <button id="printBtn" class="primary">🖨️ Скачать сертификат</button>
         <button id="againBtn" class="ghost">🔁 Пройти ещё раз</button>
       </div>
       <div class="footnote">Это развлекательный тест. Если узнал в себе скуфа — это не повод грустить, это повод заварить чай ☕️</div>
@@ -615,6 +626,10 @@ el("shareBtn").addEventListener("click", async ()=>{
     navigator.clipboard.writeText(text);
     toast("Поделиться недоступно, зато скопировали текст!", 3000);
   }
+});
+
+el("printBtn").addEventListener("click", ()=>{
+  window.print();
 });
 
 // Клавиатура
